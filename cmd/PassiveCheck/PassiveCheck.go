@@ -156,5 +156,6 @@ func setupOptionalAssetUpload(opts *runner.Options) *pdcp.UploadWriter {
 		// silently ignore
 		writer.SetAssetGroupName(opts.AssetName)
 	}
+
 	return writer
 }
