@@ -64,9 +64,13 @@ jobs:
       - name: 显示下载的文件
         run: ls -lah artifacts
 
-      - name: 创建新的 Git 标签
+      - name: 获取最新标签
         run: |
-          TAG_NAME="v1.0.0"  # 根据需求动态生成标签名
+          TAG_NAME="${GITHUB_REF##*/}"  # 从 GITHUB_REF 提取标签名，例如 refs/tags/v1.0.0
+          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+
+      - name: 创建新的 Git 标签并推送
+        run: |
           git tag $TAG_NAME
           git push origin $TAG_NAME
 
