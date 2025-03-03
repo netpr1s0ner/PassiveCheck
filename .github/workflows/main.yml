@@ -1,68 +1,43 @@
-name: Build and Release PassiveCheck
+name: goreleaser
 
 on:
   push:
     tags:
-      - "v*"  # 仅在 tag 触发时运行，例如 v1.0.0
-  workflow_dispatch:  # 允许手动触发
+      - '*'
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-        goos: [windows, linux, darwin]
-        goarch: [amd64, arm64]
-        exclude:
-          - os: windows-latest
-            goos: linux
-          - os: windows-latest
-            goos: darwin
-          - os: ubuntu-latest
-            goos: windows
-          - os: macos-latest
-            goos: windows
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-    - name: 检出代码
-      uses: actions/checkout@v4  # 这里也可以更新到 v4
-
-    - name: 设置 Go 语言环境
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23'
-
-    - name: 编译 PassiveCheck
-      run: |
-        go env -w GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
-        output_name="PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}"
-        [ "${{ matrix.goos }}" == "windows" ] && output_name="${output_name}.exe"
-        go build -o $output_name cmd/PassiveCheck/PassiveCheck.go
-
-    - name: 上传构建产物
-      uses: actions/upload-artifact@v4  # 更新到 v4
-      with:
-        name: PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}
-        path: PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}*
-
-  release:
-    needs: build  # 确保构建完成后再执行发布
+  goreleaser:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
-    - name: 检出代码
-      uses: actions/checkout@v4
+      - name: "Check out code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - name: 下载所有构建产物
-      uses: actions/download-artifact@v4  # 更新到 v4
-      with:
-        path: artifacts
+      - name: "Set up Go"
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.14
+      -
+        name: Install UPX
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          install-only: true
 
-    - name: 发布到 GitHub Releases
-      uses: softprops/action-gh-release@v1
-      with:
-        files: artifacts/**/*
-        body: "自动发布的版本 🚀"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: UPX version
+        run: upx --version
+
+      -
+        name: "Create release on GitHub"
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: "release --clean -f .github/conf/.goreleaser.yml"
+          workdir: .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
