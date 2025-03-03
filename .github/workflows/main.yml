@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - name: 检出代码
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4  # 这里也可以更新到 v4
 
     - name: 设置 Go 语言环境
       uses: actions/setup-go@v4
@@ -42,7 +42,7 @@ jobs:
         go build -o $output_name cmd/PassiveCheck/PassiveCheck.go
 
     - name: 上传构建产物
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # 更新到 v4
       with:
         name: PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}
         path: PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}*
@@ -52,10 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: 检出代码
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: 下载所有构建产物
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4  # 更新到 v4
       with:
         path: artifacts
 
