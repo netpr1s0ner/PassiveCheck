@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	// Parse the command line flags and read config files
+	// 解析程序参数
 	options := runner.ParseOptions()
 
 	// 加载指纹信息
