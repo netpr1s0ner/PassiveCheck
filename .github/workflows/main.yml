@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         goos: [windows, linux, darwin]
-        goarch: [amd64, arm64]
+        goarch: [amd64, arm64, 386, arm32]  # 修改为 386 和 arm32 架构
 
     steps:
       - name: 检出代码
@@ -63,6 +63,12 @@ jobs:
 
       - name: 显示下载的文件
         run: ls -lah artifacts
+
+      - name: 创建新的 Git 标签
+        run: |
+          TAG_NAME="v1.0.0"  # 根据需求动态生成标签名
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
 
       - name: 发布到 GitHub Releases
         uses: softprops/action-gh-release@v1
