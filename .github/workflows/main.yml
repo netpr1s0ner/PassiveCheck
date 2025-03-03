@@ -1,0 +1,49 @@
+name: Build PassiveCheck
+
+on:
+  push:   # 监听 push 事件（代码提交后触发）
+    branches: [main, master]
+  pull_request: # 监听 pull request 事件
+    branches: [main, master]
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest] # 选择多个平台
+        goos: [windows, linux, darwin] # 分别构建 Windows、Linux、macOS
+        goarch: [amd64, arm64] # 64 位架构
+        exclude:
+          - os: windows-latest
+            goos: linux
+          - os: windows-latest
+            goos: darwin
+          - os: ubuntu-latest
+            goos: windows
+          - os: macos-latest
+            goos: windows
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+
+    - name: 设置 Go 语言环境
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'  # 使用 Go 1.23 版本
+
+    - name: 编译 PassiveCheck
+      run: |
+        go env -w GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
+        output_name="PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}"
+        [ "${{ matrix.goos }}" == "windows" ] && output_name="${output_name}.exe"
+        go build -o $output_name cmd/PassiveCheck/PassiveCheck.go
+
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v3
+      with:
+        name: PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}*
