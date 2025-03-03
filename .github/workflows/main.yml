@@ -64,6 +64,9 @@ jobs:
       - name: 显示下载的文件
         run: ls -lah artifacts
 
+      - name: 检出代码
+        uses: actions/checkout@v4  # 确保当前步骤有完整的 Git 仓库上下文
+
       - name: 获取最新标签
         run: |
           TAG_NAME="${GITHUB_REF##*/}"  # 从 GITHUB_REF 提取标签名，例如 refs/tags/v1.0.0
