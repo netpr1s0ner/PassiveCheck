@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         goos: [windows, linux, darwin]
-        goarch: [amd64, arm64, 386, arm32]  # 修改为 386 和 arm32 架构
+        goarch: [amd64, arm64, arm, 386]  # 添加 386 支持
 
     steps:
       - name: 检出代码
