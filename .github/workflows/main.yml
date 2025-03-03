@@ -1,19 +1,18 @@
-name: Build PassiveCheck
+name: Build and Release PassiveCheck
 
 on:
-  push:   # 监听 push 事件（代码提交后触发）
-    branches: [main, master]
-  pull_request: # 监听 pull request 事件
-    branches: [main, master]
-  workflow_dispatch: # 允许手动触发
+  push:
+    tags:
+      - "v*"  # 仅在 tag 触发时运行，例如 v1.0.0
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest] # 选择多个平台
-        goos: [windows, linux, darwin] # 分别构建 Windows、Linux、macOS
-        goarch: [amd64, arm64] # 64 位架构
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        goos: [windows, linux, darwin]
+        goarch: [amd64, arm64]
         exclude:
           - os: windows-latest
             goos: linux
@@ -33,7 +32,7 @@ jobs:
     - name: 设置 Go 语言环境
       uses: actions/setup-go@v4
       with:
-        go-version: '1.23'  # 使用 Go 1.23 版本
+        go-version: '1.23'
 
     - name: 编译 PassiveCheck
       run: |
@@ -47,3 +46,23 @@ jobs:
       with:
         name: PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}
         path: PassiveCheck-${{ matrix.goos }}-${{ matrix.goarch }}*
+
+  release:
+    needs: build  # 确保构建完成后再执行发布
+    runs-on: ubuntu-latest
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+
+    - name: 下载所有构建产物
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+
+    - name: 发布到 GitHub Releases
+      uses: softprops/action-gh-release@v1
+      with:
+        files: artifacts/**/*
+        body: "自动发布的版本 🚀"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
